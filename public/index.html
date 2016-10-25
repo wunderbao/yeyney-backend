@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Yey/Ney</title>
+    <script src="Uri.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/3.5.0/firebase.js"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function(event) {
+      var config = {
+	apiKey: 'AIzaSyBc5VPIZUV6F5cbUdHP9NHbsUosSz8FtiA',
+	authDomain: 'yeyney-demo.firebaseapp.com',
+	databaseURL: 'https://yeyney-demo.firebaseio.com',
+	storageBucket: 'yeyney-demo.appspot.com'
+      };
+      firebase.initializeApp(config);
+      var uri = new Uri(window.location.href);
+
+      var database = firebase.database();
+      userId = uri.getQueryParamValue('id');
+      post = uri.getQueryParamValue('post');
+      token = uri.getQueryParamValue('token');
+
+      var snapshot = firebase.database().ref('/shared/' + userId).once('value').then(function(snapshot) {
+	var value = snapshot.val()[post];
+	var image = value.image;
+	var message = value.message;
+	var price =  value.price;
+
+	document.getElementById('post_message').innerHTML = message;
+	document.getElementById('post_price').innerHTML = price;
+
+	var storage = firebase.storage();
+	var storageRef = storage.ref();
+	storageRef.child(image).getDownloadURL().then(function(url) {
+	  document.getElementById('storage_image').src = url;
+	}).catch(function(error) {
+	  console.log(error);
+	});
+      });
+
+      var snapshot = firebase.database().ref('/users/' + token).once('value').then(function(snapshot) {
+	var value = snapshot.val();
+	var name = value.name;
+
+	document.getElementById('post_name').innerHTML = name;
+      });
+    });
+
+    function writeVoteToDatabase(userId, post, token, vote) {
+      var obj = {};
+      obj[token] = vote;
+      firebase.database().ref('votes/' + userId + '/' + post).update(obj);
+    }
+
+    function buttonYey() {
+      writeVoteToDatabase(userId, post, token, 'yey');
+      window.location.href = 'thankyou.html';
+    }
+
+    function buttonNey() {
+      writeVoteToDatabase(userId, post, token, 'ney');
+      window.location.href = 'thankyou.html';
+    }
+    </script>
+    <style media="screen">
+    body {
+	    font-family: Roboto, Arial, sans-serif;
+	    background: #ECEFF1;
+	    color: rgba(0,0,0,0.87);
+    }
+    </style>
+  </head>
+  <body>
+    <div id="message">
+      <h1>Help <span id="post_name"></span> to decide</h1>
+      <div>
+	<p id="post_message"></p>
+	<p>Price: <span id="post_price"></span></p>
+      </div>
+      <img id="storage_image" src="" alt="Image from Firebase Storage">
+      <br />
+      <button onClick="buttonYey()">Yey</button>
+      <button onClick="buttonNey()">Ney</button>
+    </div>
+  </body>
+</html>
