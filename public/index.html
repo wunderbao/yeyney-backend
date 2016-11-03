@@ -29,14 +29,7 @@
 
 	document.getElementById('post_message').innerHTML = message;
 	document.getElementById('post_price').innerHTML = price;
-
-	var storage = firebase.storage();
-	var storageRef = storage.ref();
-	storageRef.child(image).getDownloadURL().then(function(url) {
-	  document.getElementById('storage_image').src = url;
-	}).catch(function(error) {
-	  console.log(error);
-	});
+	  document.getElementById('storage_image').src = image;
       });
 
       var snapshot = firebase.database().ref('/users/' + token).once('value').then(function(snapshot) {
